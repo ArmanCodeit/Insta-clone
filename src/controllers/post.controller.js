@@ -58,6 +58,91 @@ async function createPostController(req,res){
 }
 
 
+async function getPostController(req,res){
+
+    const extracted_token = req.cookies.token;
+    
+
+    if(!extracted_token){
+        res.status(401).json({
+            message: "token not provided, un-authorized access !"
+        })
+    }
+
+    let decoded = null;
+    try{
+        decoded = jwt.verify(extracted_token, process.env.JWT_SECRET);
+    } catch(err){
+        return res.status(401).json({
+            message: "Invalid token, unauthorized access !"
+        })
+    }
+
+    const userId = decoded.id;
+    
+    
+    const posts = await postModel.find({
+        user: userId
+    })
+
+    res.status(200).json({
+        message: "posts fetched successfully !",
+        posts
+    })
+}
+
+
+async function getPostDetailsController(req,res){
+    
+    const extracted_token = req.cookies.token;
+
+    if(!extracted_token){
+        res.status(401).json({
+            message: "token not provided, un-authorized access !"
+        })
+    }
+
+    let decoded = null;
+
+    try{
+        decoded = jwt.verify(extracted_token, process.env.JWT_SECRET);
+    } catch(err){
+        return res.status(401).json({
+            message: "Invalid token !"
+        })
+    }
+
+    const userId = decoded.id;
+    const postId = req.params.postId;
+
+
+    const post = await postModel.findById(postId);
+
+    if(!post){
+        return res.status(404).json({
+            message: "post not found !"
+        })
+    }
+
+    const isValidUser = (post.user.toString() === userId);
+
+    if(!isValidUser){
+        return res.status(403).json({
+            message: "forbidden content !"
+        })
+    }
+
+    return res.status(200).json({
+        message: "post fetched successfully",
+        post
+    })
+
+}
+
+
+
 module.exports = {
-    createPostController
+    createPostController,
+    getPostController,
+    getPostDetailsController
 }

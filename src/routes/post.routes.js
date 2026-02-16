@@ -15,4 +15,18 @@ const upload = multer({storage: storage})
  */
 postRouter.post("/",upload.single("image") , postController.createPostController)
 
+
+/**
+ * GET /api/posts
+ */
+postRouter.get("/", postController.getPostController)
+
+
+/**
+ * GET /api/posts/details/:postid
+ */
+postRouter.get("/details/:postId", postController.getPostDetailsController)
+
+
+
 module.exports = postRouter;

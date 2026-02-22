@@ -15,29 +15,6 @@ async function createPostController(req,res){
 
     console.log(req.body, req.file);
 
-
-    const extracted_token = req.cookies.token;
-
-
-    if(!extracted_token){
-        res.status(401).json({
-            message: "token not provided, un-authorized access !"
-        })
-    }
-
-
-    let decoded = null;
-    try{
-        decoded = jwt.verify(extracted_token, process.env.JWT_SECRET);
-    } catch(err){
-        return res.status(401).json({
-            message: "un-authorised user !"
-        })
-    }
-
-    console.log(decoded);
-
-
     const file = await imagekit.files.upload({
         file: await toFile(Buffer.from(req.file.buffer),'file'),
         fileName: "Test",
@@ -47,7 +24,7 @@ async function createPostController(req,res){
     const post = await postModel.create({
         caption: caption,
         imgUrl: file.url,
-        user: decoded.id
+        user: req.user.id
     })
 
     res.status(201).json({
@@ -60,25 +37,7 @@ async function createPostController(req,res){
 
 async function getPostController(req,res){
 
-    const extracted_token = req.cookies.token;
-    
-
-    if(!extracted_token){
-        res.status(401).json({
-            message: "token not provided, un-authorized access !"
-        })
-    }
-
-    let decoded = null;
-    try{
-        decoded = jwt.verify(extracted_token, process.env.JWT_SECRET);
-    } catch(err){
-        return res.status(401).json({
-            message: "Invalid token, unauthorized access !"
-        })
-    }
-
-    const userId = decoded.id;
+    const userId = req.user.id;
     
     
     const posts = await postModel.find({
@@ -94,25 +53,7 @@ async function getPostController(req,res){
 
 async function getPostDetailsController(req,res){
     
-    const extracted_token = req.cookies.token;
-
-    if(!extracted_token){
-        res.status(401).json({
-            message: "token not provided, un-authorized access !"
-        })
-    }
-
-    let decoded = null;
-
-    try{
-        decoded = jwt.verify(extracted_token, process.env.JWT_SECRET);
-    } catch(err){
-        return res.status(401).json({
-            message: "Invalid token !"
-        })
-    }
-
-    const userId = decoded.id;
+    const userId = req.user.id;
     const postId = req.params.postId;
 
 
@@ -139,10 +80,41 @@ async function getPostDetailsController(req,res){
 
 }
 
+async function likePostController(req,res){
+    const username = req.user.username;
+    const postId = req.params.postId;
 
+    const post = await postModel.findById(postId);
+
+    if(!post){
+        return res.status(404).json({
+            message: "post not found !"
+        })
+    }
+
+    const isAlreadyLiked = post.likes.includes(userId);
+
+    if(isAlreadyLiked){
+        return res.status(200).json({
+            message: "post already liked !"
+        })
+    }  
+
+    const like = await postModel.create({
+        post: postId,
+        user: username
+    })
+
+    res.status(201).json({
+        message: "post liked successfully !",
+        like
+    })
+    
+}
 
 module.exports = {
     createPostController,
     getPostController,
-    getPostDetailsController
+    getPostDetailsController,
+    likePostController
 }

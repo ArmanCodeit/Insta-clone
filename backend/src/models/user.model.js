@@ -20,7 +20,11 @@ const userSchema = new mongoose.Schema({
     profileImage: {
         type: String,
         default: "https://i.pinimg.com/564x/c5/07/8e/c5078ec7b5679976947d90e4a19e1bbb.jpg"
-    }
+    },
+    isPrivate:{
+        type:Boolean,
+        default:false
+   }
 })
 
 const userModel = mongoose.model("users",userSchema);

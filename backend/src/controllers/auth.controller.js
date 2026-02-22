@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 
 async function registerController(req,res){
 
-    const { email, username, password, bio, profileImage} = req.body;
+    const { email, username, password, bio, profileImage, isPrivate} = req.body;
 
     const isUserAlreadyExists = await userModel.findOne({
         $or: [
@@ -29,7 +29,8 @@ async function registerController(req,res){
         email: email,
         bio: bio,
         profileImage: profileImage,
-        password: hash
+        password: hash,
+        isPrivate: Boolean(isPrivate)
     })
 
     const token = jwt.sign(
@@ -46,13 +47,14 @@ async function registerController(req,res){
     res.cookie("token", token);
 
 
-    res.status(201).json({
+    return res.status(201).json({
         message: "user registered successfully !",
         user: {
             email: user.email,
             username: user.username,
             bio: user.bio,
-            profileImage: user.profileImage
+            profileImage: user.profileImage,
+            isPrivate: user.isPrivate
         }
     })
 }
@@ -109,13 +111,14 @@ async function loginController(req,res){
 
     res.cookie("token",token);
 
-    res.status(200).json({
+    return res.status(200).json({
         message: "user logged in successfully !",
         user:{
             username: user.username,
             email: user.email,
             bio: user.bio,
-            profileImage: user.profileImage
+            profileImage: user.profileImage,
+            isPrivate: user.isPrivate
         }
     })
 
